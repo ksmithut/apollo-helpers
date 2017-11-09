@@ -1,11 +1,11 @@
 /* eslint-env jest */
 'use strict'
 
-const { PubSub } = require('graphql-subscriptions')
+const PubSub = require('graphql-subscriptions').PubSub
 const createExecutor = require('../create-executor')
 
 describe('createExecutor', () => {
-  test('runs a query', async () => {
+  test('runs a query', () => {
     const executor = createExecutor({
       schema: `
         type Query {
@@ -25,14 +25,14 @@ describe('createExecutor', () => {
         hello
       }
     `
-    await expect(executor.run(query)).resolves.toEqual({
+    return expect(executor.run(query)).resolves.toEqual({
       data: {
         hello: 'Hello World'
       }
     })
   })
 
-  test('runs with arguments', async () => {
+  test('runs with arguments', () => {
     const testRootValue = { foo: 'bar' }
     const testContextArg = { hello: 'world' }
     const testContext = { another: 'variable' }
@@ -91,31 +91,33 @@ describe('createExecutor', () => {
         echo(msg: $message)
       }
     `
-    await expect(
-      executor.run(query, {
-        rootValue: testRootValue,
-        contextArg: testContextArg,
-        operationName: 'SayHello',
-        contextValue: testAdditionalContext
+    return Promise.all([
+      expect(
+        executor.run(query, {
+          rootValue: testRootValue,
+          contextArg: testContextArg,
+          operationName: 'SayHello',
+          contextValue: testAdditionalContext
+        })
+      ).resolves.toEqual({
+        data: {
+          hello: 'Hello World'
+        }
+      }),
+      expect(
+        executor.run(query, {
+          contextArg: testContextArg,
+          rootValue: testRootValue,
+          operationName: 'SayHelloBack',
+          variableValues: { message: testEcho },
+          contextValue: testAdditionalContext
+        })
+      ).resolves.toEqual({
+        data: {
+          echo: 'Hello to you, too'
+        }
       })
-    ).resolves.toEqual({
-      data: {
-        hello: 'Hello World'
-      }
-    })
-    await expect(
-      executor.run(query, {
-        contextArg: testContextArg,
-        rootValue: testRootValue,
-        operationName: 'SayHelloBack',
-        variableValues: { message: testEcho },
-        contextValue: testAdditionalContext
-      })
-    ).resolves.toEqual({
-      data: {
-        echo: 'Hello to you, too'
-      }
-    })
+    ])
   })
 
   test('works with subscriptions', done => {

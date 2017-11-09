@@ -4,6 +4,5 @@ exports[`apolloHelpers should have methods 1`] = `
 Object {
   "compileGraphqlResources": [Function],
   "createExecutor": [Function],
-  "getSubscriptionsEndpoint": [Function],
 }
 `;

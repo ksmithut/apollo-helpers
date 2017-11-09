@@ -1,8 +1,8 @@
 'use strict'
 
-const { makeExecutableSchema } = require('graphql-tools')
-const { execute, parse, subscribe } = require('graphql')
-const { forAwaitEach } = require('iterall')
+const graphqlTools = require('graphql-tools')
+const graphql = require('graphql')
+const iterall = require('iterall')
 const compileGraphqlResources = require('./compile-graphql-resources')
 
 /**
@@ -20,11 +20,12 @@ const compileGraphqlResources = require('./compile-graphql-resources')
  */
 const createExecutor = graphqlModules => {
   const resources = compileGraphqlResources(graphqlModules)
-  const schema = makeExecutableSchema({
+  const schema = graphqlTools.makeExecutableSchema({
     typeDefs: resources.typeDefs,
     resolvers: resources.resolvers
   })
-  const getOptions = (query, graphqlOptions = {}) => {
+  const getOptions = (query, graphqlOptions) => {
+    graphqlOptions = graphqlOptions || {}
     const context = Object.assign(
       {},
       graphqlOptions.contextValue,
@@ -32,7 +33,7 @@ const createExecutor = graphqlModules => {
     )
     return Object.assign({}, graphqlOptions, {
       schema,
-      document: parse(query),
+      document: graphql.parse(query),
       contextValue: context
     })
   }
@@ -60,7 +61,7 @@ const createExecutor = graphqlModules => {
    */
   const runQuery = (query, graphqlOptions) => {
     const options = getOptions(query, graphqlOptions)
-    return execute(options)
+    return graphql.execute(options)
   }
 
   /**
@@ -73,7 +74,9 @@ const createExecutor = graphqlModules => {
    */
   const runSubscribe = (query, graphqlOptions, callback) => {
     const options = getOptions(query, graphqlOptions)
-    return subscribe(options).then(iterator => forAwaitEach(iterator, callback))
+    return graphql
+      .subscribe(options)
+      .then(iterator => iterall.forAwaitEach(iterator, callback))
   }
 
   return {
