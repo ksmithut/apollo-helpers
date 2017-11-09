@@ -1,0 +1,44 @@
+{
+  "name": "apollo-helpers",
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "private": true,
+  "author": "ksmithut",
+  "license": "MIT",
+  "scripts": {
+    "lint": "standard .",
+    "pretest": "npm run lint",
+    "test": "jest"
+  },
+  "eslintConfig": {
+    "root": true,
+    "extends": [
+      "standard"
+    ]
+  },
+  "jest": {
+    "coverageThreshold": {
+      "global": {
+        "branches": 100,
+        "functions": 100,
+        "lines": 100,
+        "statements": 100
+      }
+    },
+    "collectCoverage": true,
+    "collectCoverageFrom": [
+      "src/**/*.js"
+    ]
+  },
+  "dependencies": {
+    "graphql": "^0.11.7",
+    "graphql-tools": "^2.7.2",
+    "ramda": "^0.25.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^21.1.5",
+    "graphql-subscriptions": "^0.5.4",
+    "jest": "^21.2.1",
+    "standard": "^10.0.3"
+  }
+}
