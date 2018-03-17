@@ -61,7 +61,7 @@ const createExecutor = graphqlModules => {
    */
   const runQuery = (query, graphqlOptions) => {
     const options = getOptions(query, graphqlOptions)
-    return graphql.execute(options)
+    return Promise.resolve(graphql.execute(options))
   }
 
   /**
