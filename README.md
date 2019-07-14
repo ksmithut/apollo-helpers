@@ -1,5 +1,8 @@
 # apollo-helpers
 
+**DEPRECATION NOTICE** This module is deprecated and no longer supported. Apollo
+2.0 implemented tools that make it easy to merge schemas.
+
 A collection of functions I would rewrite over and over again the more I dealt
 with Apollo graphql-tools, and other graphql setups.
 
@@ -33,7 +36,7 @@ const graphqlModules = [
         health2: (parent, args, context) => context.newHealth
       }
     },
-    context: (req) => ({ newHealth: 'A-O-K' })
+    context: req => ({ newHealth: 'A-O-K' })
   }
 ]
 const graphqlResources = compileGraphqlResources(graphqlModules)
@@ -41,11 +44,15 @@ const schema = makeExecutableSchema({
   typeDefs: graphqlResources.typeDefs,
   resolvers: graphqlResources.resolvers
 })
-app.use('/graphql', graphqlExpress((req) => ({
-  schema,
-  context: graphqlResources.getContext(req)
-})))
+app.use(
+  '/graphql',
+  graphqlExpress(req => ({
+    schema,
+    context: graphqlResources.getContext(req)
+  }))
+)
 ```
+
 </details>
 
 The only argument is the array of graphql modules. Each of the graphql modules
@@ -91,7 +98,7 @@ be referred to as `graphqlResources`
 // resources/system/system.graphql.js
 const systemController = {
   health: () => 'ok',
-  echo: (msg) => msg
+  echo: msg => msg
 }
 
 exports.schema = `
@@ -103,19 +110,19 @@ exports.schema = `
   }
 `
 
-exports.context = (req) => ({
+exports.context = req => ({
   user: req.user || { id: null },
   system: systemController
 })
 
 exports.resolvers = {
   Query: {
-    health (parent, args, context) {
+    health(parent, args, context) {
       return context.system.health()
     }
   },
   Mutation: {
-    echo (parent, args, context) {
+    echo(parent, args, context) {
       return context.system.echo(args.msg)
     }
   }
@@ -151,22 +158,22 @@ exports.schema = `
   }
 `
 
-exports.context = (req) => ({
+exports.context = req => ({
   todos: todoController
 })
 
 exports.resolvers = {
   Todo: {
-    id (parent) {
+    id(parent) {
       return String(parent._id)
     }
   },
   Query: {
-    todos (parent, args, context) {
+    todos(parent, args, context) {
       const query = Object.assign({}, args, { owner: context.user.id })
       return context.todos.find(query)
     },
-    todo (parent, { id }, context) {
+    todo(parent, { id }, context) {
       return context.todos.findOne({
         _id: id,
         owner: context.user.id
@@ -174,20 +181,24 @@ exports.resolvers = {
     }
   },
   Mutation: {
-    createTodo (parent, { label }, context) {
+    createTodo(parent, { label }, context) {
       return context.todos.create({
         label,
         completed: false,
         owner: context.user.id
       })
     },
-    updateTodo (parent, { id, ...update }, context) {
-      return context.todos.findOneAndUpdate({
-        _id: id,
-        owner: context.user.id
-      }, update, { new: true })
+    updateTodo(parent, { id, ...update }, context) {
+      return context.todos.findOneAndUpdate(
+        {
+          _id: id,
+          owner: context.user.id
+        },
+        update,
+        { new: true }
+      )
     },
-    deleteTodo (parent, { id }, context) {
+    deleteTodo(parent, { id }, context) {
       return context.todos.findOneAndRemove({
         _id: id,
         owner: context.user.id
@@ -208,10 +219,7 @@ const { compileGraphqlResources } = require('apollo-helpers')
 // Resources
 const system = require('./resources/system/system.graphql')
 const todos = require('./resources/todos/todos.graphql')
-const graphqlResources = compileGraphqlResources([
-  system,
-  todos
-])
+const graphqlResources = compileGraphqlResources([system, todos])
 
 const schema = makeExecutableSchema({
   typeDefs: graphqlResources.typeDefs,
@@ -219,14 +227,16 @@ const schema = makeExecutableSchema({
 })
 
 app.use(bodyParser.json())
-app.use('/graphql', graphqlExpress((req) => ({
-  schema,
-  context: graphqlResources.getContext(req)
-})))
+app.use(
+  '/graphql',
+  graphqlExpress(req => ({
+    schema,
+    context: graphqlResources.getContext(req)
+  }))
+)
 ```
+
 </details>
-
-
 
 ## `apolloHelpers.createExecutor(graphqlModule)`
 
@@ -274,27 +284,31 @@ setInterval(() => {
 
 const executor = createExecutor(graphqlModule)
 
-executor.run(`query { health }`)
-  .then((result) => console.log(result)) // { data: { health: 'ok' } }
+executor.run(`query { health }`).then(result => console.log(result)) // { data: { health: 'ok' } }
 
 executor
-  .run(`
+  .run(
+    `
     mutation Echo($message: String!) {
       echo(msg: $message)
     }
-  `, {
-    variableValues: { message: 'Hello world!' }
-  })
-  .then((result) => console.log(result)) // { data: { echo: 'Hello world!' } }
+  `,
+    {
+      variableValues: { message: 'Hello world!' }
+    }
+  )
+  .then(result => console.log(result)) // { data: { echo: 'Hello world!' } }
 
-executor.subscribe(`subscription { tick }`, {}, (result) => {
+executor.subscribe(`subscription { tick }`, {}, result => {
   console.log(result) // { data: { tick: 1510239888797 }}
 })
 ```
+
 </details>
 
 - `executor.run(query, graphqlOptions)`
   Runs the query and returns a promise which resolves with the data.
+
   - `query` - The graphql query to run
   - `graphqlOptions` - An object of object which help give more context to the
     query.
