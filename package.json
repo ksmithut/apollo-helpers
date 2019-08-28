@@ -36,10 +36,10 @@
     "ramda": "^0.26.1"
   },
   "devDependencies": {
-    "@types/jest": "^24.0.15",
+    "@types/jest": "^24.0.18",
     "codeclimate-test-reporter": "^0.5.1",
     "graphql-subscriptions": "^0.5.8",
-    "jest": "^24.8.0",
-    "standard": "^13.0.2"
+    "jest": "^24.9.0",
+    "standard": "^14.0.2"
   }
 }
